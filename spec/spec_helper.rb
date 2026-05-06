@@ -42,6 +42,7 @@ REDLOCK_CLIENT = Redlock::Client.new([ENV.fetch('REDIS_URL')]) unless defined?(R
 Dir[File.join(__dir__, '..', 'app', 'models',     '*.rb')].each { |f| require f }
 Dir[File.join(__dir__, '..', 'app', 'middleware', '*.rb')].each { |f| require f }
 Dir[File.join(__dir__, '..', 'app', 'providers',  '*.rb')].each { |f| require f }
+Dir[File.join(__dir__, '..', 'app', 'validators', '*.rb')].each { |f| require f }
 Dir[File.join(__dir__, '..', 'app', 'services',   '*.rb')].each { |f| require f }
 Dir[File.join(__dir__, '..', 'app', 'jobs',       '*.rb')].each { |f| require f }
 Dir[File.join(__dir__, '..', 'app', 'handlers',   '*.rb')].each { |f| require f }
