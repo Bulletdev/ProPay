@@ -1,0 +1,68 @@
+services:
+  propay-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: propay_development
+      POSTGRES_USER: propay
+      POSTGRES_PASSWORD: ${PROPAY_DB_PASSWORD:-propay_dev_password}
+    volumes:
+      - propay_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U propay -d propay_development"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6382:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  propay:
+    build: .
+    environment: &propay-env
+      DATABASE_URL: postgresql://propay:${PROPAY_DB_PASSWORD:-propay_dev_password}@propay-db:5432/propay_development
+      REDIS_URL: redis://redis:6379/1
+      INTERNAL_JWT_SECRET: ${INTERNAL_JWT_SECRET:-dev_secret_change_in_production}
+      PROPAY_OPENPIX_APP_ID: ${PROPAY_OPENPIX_APP_ID:-}
+      PROPAY_OPENPIX_SECRET: ${PROPAY_OPENPIX_SECRET:-}
+      PROPAY_PIX_KEY: ${PROPAY_PIX_KEY:-}
+      PROPAY_PROVIDER: ${PROPAY_PROVIDER:-openpix}
+      PROSTAFF_API_URL: ${PROSTAFF_API_URL:-http://api:3000}
+      MALLOC_ARENA_MAX: "2"
+    ports:
+      - "5555:5555"
+    depends_on:
+      propay-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  propay-worker:
+    build: .
+    command: bundle exec sidekiq -c config/sidekiq.yml
+    environment: *propay-env
+    depends_on:
+      propay-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  propay_db_data:

@@ -1,0 +1,74 @@
+AllCops:
+  TargetRubyVersion: 3.4
+  NewCops: enable
+  Exclude:
+    - 'db/migrations/**/*'
+    - 'vendor/**/*'
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Metrics/MethodLength:
+  Max: 50
+  Exclude:
+    - 'app/handlers/**/*'
+
+Metrics/ClassLength:
+  Max: 150
+  Exclude:
+    - 'app/handlers/**/*'
+
+Metrics/CyclomaticComplexity:
+  Max: 7
+  Exclude:
+    - 'app/handlers/**/*'
+
+Metrics/AbcSize:
+  Max: 20
+  Exclude:
+    - 'app/handlers/**/*'
+
+Metrics/PerceivedComplexity:
+  Max: 8
+  Exclude:
+    - 'app/handlers/**/*'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'app/handlers/**/*'
+    - 'app/propay_app.rb'
+    - 'spec/**/*'
+
+# Keyword args não contam como parameter list — padrão de serviços Ruby
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - 'spec/**/*'
+
+Style/Lambda:
+  EnforcedStyle: literal
+
+Style/MultilineTernaryOperator:
+  Enabled: true
+
+Style/SafeNavigationChainLength:
+  Max: 2
+
+# cancel_charge retorna bool por convenção da interface do provider — não é predicate de estado
+Naming/PredicateMethod:
+  AllowedMethods:
+    - cancel_charge
+
+# Jobs Sidekiq: rescue + DB.transaction inflam ABCSize artificialmente
+Metrics/AbcSize:
+  Exclude:
+    - 'app/handlers/**/*'
+    - 'app/jobs/**/*'
+    - 'app/services/subscription_service.rb'

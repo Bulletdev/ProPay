@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+*.log
+tmp/
+.bundle/
+vendor/bundle/
+Gemfile.lock
+coverage/
+.rspec_status
