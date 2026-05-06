@@ -78,7 +78,7 @@ curl http://localhost:5555/v1/health
 ```bash
 cp .env.example .env
 bundle install
-bundle exec sequel -m db/migrations $DATABASE_URL
+bundle exec ruby -e "require_relative 'config/database'; Sequel::Migrator.run(DB, 'db/migrations')"
 bundle exec iodine --yjit --yjit-exec-mem-size=8 -p 5555
 ```
 
@@ -188,14 +188,14 @@ bundle install
 
 # 2. Banco
 createdb propay_development
-bundle exec sequel -m db/migrations $DATABASE_URL
+bundle exec ruby -e "require_relative 'config/database'; Sequel::Migrator.run(DB, 'db/migrations')"
 
 # 3. Variáveis
 cp .env.example .env
 
 # 4. Rodar
-bundle exec sidekiq -c config/sidekiq.yml &   # Terminal 1
-bundle exec iodine --yjit -p 5555             # Terminal 2
+bundle exec sidekiq -C config/sidekiq.yml -r ./config/sidekiq_boot.rb &  # Terminal 1
+bundle exec iodine --yjit -p 5555                                          # Terminal 2
 ```
 
 ---
@@ -320,56 +320,67 @@ Abstração unificada - trocar de provider só muda `PROPAY_PROVIDER`.
 
 ### DEPLOYMENT
 
-**docker-compose.yml (produção):**
+**docker-compose.yaml (produção — via Coolify):**
 
 ```yaml
 services:
   propay-db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: propay_production
+      POSTGRES_DB: propay_development
       POSTGRES_USER: propay
       POSTGRES_PASSWORD: ${PROPAY_DB_PASSWORD}
     volumes:
       - propay_db_data:/var/lib/postgresql/data
     networks:
-      - coolify
+      - propay-internal
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - propay-internal
 
   propay:
     build: .
     environment: &propay-env
-      DATABASE_URL: postgresql://propay:${PROPAY_DB_PASSWORD}@propay-db:5432/propay_production
-      REDIS_URL: redis://default:${REDIS_PASSWORD}@redis:6379/1
+      DB_HOST: propay-db
+      DB_PORT: "5432"
+      DB_NAME: propay_development
+      DB_USER: propay
+      DB_PASSWORD: ${PROPAY_DB_PASSWORD}
+      REDIS_URL: redis://redis:6379/1
       INTERNAL_JWT_SECRET: ${INTERNAL_JWT_SECRET}
       PROPAY_OPENPIX_APP_ID: ${PROPAY_OPENPIX_APP_ID}
       PROPAY_OPENPIX_SECRET: ${PROPAY_OPENPIX_SECRET}
       PROPAY_PIX_KEY: ${PROPAY_PIX_KEY}
-      PROSTAFF_API_URL: http://api:3000
-      MALLOC_ARENA_MAX: 2
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.propay.rule=Host(`propay.prostaff.gg`)"
-      - "traefik.http.routers.propay.tls.certresolver=letsencrypt"
-      - "traefik.http.services.propay.loadbalancer.server.port=5555"
+      PROSTAFF_API_URL: ${PROSTAFF_API_URL:-https://api.prostaff.gg}
+      MALLOC_ARENA_MAX: "2"
     networks:
+      - propay-internal
       - coolify
-    depends_on:
-      propay-db:
-        condition: service_healthy
 
   propay-worker:
     build: .
-    command: bundle exec sidekiq -c config/sidekiq.yml
+    command: bundle exec sidekiq -C config/sidekiq.yml -r ./config/sidekiq_boot.rb
     environment: *propay-env
     networks:
-      - coolify
+      - propay-internal
 
 volumes:
   propay_db_data:
 
 networks:
+  propay-internal:
+    driver: bridge
   coolify:
     external: true
+```
+
+**Migrações (rodar uma vez após o primeiro deploy):**
+
+```bash
+docker exec <propay-container> bundle exec ruby -e \
+  "require_relative 'config/database'; Sequel::Migrator.run(DB, 'db/migrations')"
 ```
 
 ---
@@ -378,8 +389,12 @@ networks:
 
 | Variável                     | Obrigatória | Descrição |
 |------------------------------|-------------|-----------|
-| `DATABASE_URL`               | Sim         | PostgreSQL do propay-db |
-| `REDIS_URL`                  | Sim         | Redis DB 1 |
+| `DB_HOST`                    | Sim         | Host do PostgreSQL (ex: `propay-db`) |
+| `DB_PORT`                    | Sim         | Porta do PostgreSQL (ex: `5432`) |
+| `DB_NAME`                    | Sim         | Nome do banco (ex: `propay_development`) |
+| `DB_USER`                    | Sim         | Usuário do PostgreSQL |
+| `DB_PASSWORD`                | Sim         | Senha do PostgreSQL (suporta caracteres especiais) |
+| `REDIS_URL`                  | Sim         | Redis DB 1 (ex: `redis://redis:6379/1`) |
 | `INTERNAL_JWT_SECRET`        | Sim         | Mesmo do prostaff-api |
 | `PROPAY_OPENPIX_APP_ID`      | Fase 1      | OpenPix App ID |
 | `PROPAY_OPENPIX_SECRET`      | Fase 1      | Secret HMAC |
