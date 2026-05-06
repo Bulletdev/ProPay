@@ -5,6 +5,5 @@
 tmp/
 .bundle/
 vendor/bundle/
-Gemfile.lock
 coverage/
 .rspec_status
