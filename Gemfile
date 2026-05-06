@@ -17,7 +17,7 @@ gem 'redis',             '~> 5.0'
 gem 'redlock',           '~> 1.3'
 gem 'roda',              '~> 3.103'
 gem 'sequel',            '~> 5.75'
-gem 'sequel_pg',         '~> 1.17'
+gem 'sequel_pg',         '~> 1.17', require: false
 gem 'sidekiq',           '~> 7.1'
 
 gem 'rack-cors',         '~> 2.0'
