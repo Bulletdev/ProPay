@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require 'sequel'
-require 'sequel/adapters/postgres'
-require 'sequel_pg'
 
 db_opts = {
   max_connections: Integer(ENV.fetch('DB_POOL', 10)),
@@ -11,5 +9,6 @@ db_opts = {
 db_opts[:logger] = Logger.new($stdout) if ENV['DB_LOGGING'] == 'true'
 
 DB = Sequel.connect(ENV.fetch('DATABASE_URL'), **db_opts)
+require 'sequel_pg'
 DB.extension :pg_json
 DB.freeze
