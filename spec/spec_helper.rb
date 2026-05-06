@@ -20,7 +20,6 @@ PIX_KEY_TYPES   = %w[cpf cnpj email phone random].freeze unless defined?(PIX_KEY
 VALID_PROVIDERS = %w[openpix efi].freeze unless defined?(VALID_PROVIDERS)
 
 require 'sequel'
-require 'sequel_pg'
 require 'oj'
 require 'jwt'
 require 'redis'
@@ -28,6 +27,7 @@ require 'connection_pool'
 require 'redlock'
 
 DB = Sequel.connect(ENV.fetch('DATABASE_URL')) unless defined?(DB)
+require 'sequel_pg'
 DB.extension :pg_json
 DB.extension :pg_array
 
