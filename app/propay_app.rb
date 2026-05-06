@@ -6,6 +6,7 @@ class ProPayApp < Roda
   plugin :json
   plugin :json_parser
   plugin :halt
+  plugin :status_handler
   plugin :request_headers
 
   status_handler(404) { Oj.dump({ error: 'not_found' }, mode: :compat) }
