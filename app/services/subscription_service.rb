@@ -47,6 +47,7 @@ class SubscriptionService
       cancelled_at: Time.now.utc,
       ends_at: sub.current_period_end
     )
+    TierSyncJob.perform_async(sub.customer.owner_id, nil)
     sub
   end
 
