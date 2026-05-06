@@ -63,7 +63,7 @@ services:
 
   propay-worker:
     build: .
-    command: bundle exec sidekiq -c config/sidekiq.yml
+    command: bundle exec sidekiq -C config/sidekiq.yml
     environment: *propay-env
     depends_on:
       propay-db:

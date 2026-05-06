@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'sequel'
+require 'sequel/adapters/postgres'
 require 'sequel_pg'
 
 db_opts = {
