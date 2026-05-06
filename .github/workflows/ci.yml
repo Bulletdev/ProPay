@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, developer]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: propay
+          POSTGRES_PASSWORD: propay_test_password
+          POSTGRES_DB: propay_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://propay:propay_test_password@localhost:5432/propay_test
+      REDIS_URL: redis://localhost:6379/9
+      INTERNAL_JWT_SECRET: ci_test_secret_do_not_use_in_production
+      PROPAY_OPENPIX_APP_ID: test_app_id
+      PROPAY_OPENPIX_SECRET: test_webhook_secret
+      PROPAY_PROVIDER: openpix
+      PROSTAFF_API_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Run migrations
+        run: bundle exec sequel -m db/migrations $DATABASE_URL
+
+      - name: Run tests
+        run: bundle exec rspec
+
+      - name: Run Brakeman security scan
+        run: bundle exec brakeman --no-pager -q
+        continue-on-error: true
