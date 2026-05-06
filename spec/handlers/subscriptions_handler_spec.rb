@@ -174,6 +174,7 @@ RSpec.describe 'Subscriptions API', type: :request do
     before do
       customer
       subscription
+      allow(TierSyncJob).to receive(:perform_async)
     end
 
     context 'without JWT' do

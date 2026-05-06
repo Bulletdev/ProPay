@@ -123,6 +123,7 @@ RSpec.describe SubscriptionService do
   end
 
   describe '#cancel!' do
+    before { allow(TierSyncJob).to receive(:perform_async) }
     let!(:active_sub) do
       Subscription.create(
         customer_id: customer.id,
