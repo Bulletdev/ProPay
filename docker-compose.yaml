@@ -73,7 +73,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f sidekiq || exit 1"]
+      test: ["CMD-SHELL", "grep -q sidekiq /proc/1/cmdline || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
