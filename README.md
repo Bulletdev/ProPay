@@ -126,8 +126,8 @@ REDE DOCKER: coolify
 
 FRONTENDS (Cloudflare Pages)
     +-- ArenaBR
-    +-- ProStaff Analytics
     +-- Scrims.lol
+    +-- ProStaff Analytics Hub
 ```
 
 **Fluxo de pagamento (PIX único - ArenaBR):**
@@ -215,6 +215,7 @@ Todas as mutações exigem `Idempotency-Key: <uuid-v4>`.
 - `POST   /v1/charges` - Criar cobrança
 - `GET    /v1/charges/:txid` - Consultar
 - `DELETE /v1/charges/:txid` - Cancelar
+- `POST   /v1/charges/:txid/refund` - Reembolso CDC (janela de 7 dias)
 
 **Exemplo POST /v1/charges:**
 ```json
@@ -256,9 +257,16 @@ Todas as mutações exigem `Idempotency-Key: <uuid-v4>`.
 - `POST   /v1/wallet/payouts`
 - `GET    /v1/wallet/payouts/:id`
 
-#### Admin / Prêmios
+#### Admin
+- `GET    /v1/admin/dashboard` - Resumo financeiro geral
+- `GET    /v1/admin/subscriptions` - Todas as assinaturas
+- `GET    /v1/admin/charges` - Todas as cobranças
+- `GET    /v1/admin/wallets` - Todas as carteiras
 - `POST   /v1/tournaments/:id/distribute_prizes`
 - `GET    /v1/tournaments/:id/financial_report`
+
+#### Observabilidade
+- `GET    /metrics` - Métricas Prometheus (proteger via Traefik em produção)
 
 **Status de cobrança:**
 
@@ -297,6 +305,8 @@ Abstração unificada - trocar de provider só muda `PROPAY_PROVIDER`.
 | `SubscriptionRetryJob`   | Charge expirada          | Retry D+1/D+2/D+3 |
 | `PrizeDistributionJob`   | Campeonato finalizado    | Distribui prêmios |
 | `ExpireChargesJob`       | Cron 15 min              | Marca cobranças expiradas |
+| `PayoutProcessingJob`    | Saque solicitado         | Valida anti-fraude 24h + debita wallet + PIX de saída |
+| `SidekiqHealthJob`       | Cron 5 min               | Alerta dead queue > 5, atualiza gauge Prometheus |
 
 ---
 
