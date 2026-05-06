@@ -15,6 +15,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - propay-internal
 
   redis:
     image: redis:7-alpine
@@ -25,6 +27,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - propay-internal
 
   propay:
     build: .
@@ -53,6 +57,9 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - propay-internal
+      - coolify
 
   propay-worker:
     build: .
@@ -63,6 +70,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - propay-internal
+      - coolify
 
 volumes:
   propay_db_data:
+
+networks:
+  propay-internal:
+    driver: bridge
+  coolify:
+    external: true
