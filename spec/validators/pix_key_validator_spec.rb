@@ -59,7 +59,7 @@ RSpec.describe PixKeyValidator do
 
     context 'random (UUID v4)' do
       it 'accepts valid UUID v4' do
-        expect(described_class.valid?('random', '550e8400-e29b-41d4-a716-446655440000')).to be false
+        expect(described_class.valid?('random', '550e8400-e29b-41d4-a716-446655440000')).to be true
         expect(described_class.valid?('random', '550e8400-e29b-4fd4-a716-446655440000')).to be true
       end
 

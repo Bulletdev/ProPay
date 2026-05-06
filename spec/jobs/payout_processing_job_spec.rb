@@ -54,7 +54,7 @@ RSpec.describe PayoutProcessingJob do
         create_payout(wallet_id: wallet.id, status: 'pending')
       end
 
-      before { wallet.delete }
+      before { allow_any_instance_of(Payout).to receive(:wallet).and_return(nil) }
 
       it 'sets the payout status to failed' do
         described_class.new.perform(payout.id)

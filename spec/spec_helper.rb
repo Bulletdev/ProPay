@@ -26,7 +26,7 @@ require 'redis'
 require 'connection_pool'
 require 'redlock'
 
-DB = Sequel.connect(ENV.fetch('DATABASE_URL')) unless defined?(DB)
+DB = Sequel.connect(ENV.fetch('DATABASE_URL'), max_connections: 1) unless defined?(DB)
 require 'sequel_pg'
 DB.extension :pg_json
 DB.extension :pg_array
@@ -49,6 +49,15 @@ Dir[File.join(__dir__, '..', 'app', 'handlers',   '*.rb')].each { |f| require f 
 require_relative '../app/propay_app'
 
 WebMock.disable_net_connect!(allow_localhost: true)
+
+RSpec::Matchers.define :be_present do
+  match { |actual| !actual.nil? && actual != '' && actual != [] && actual != {} }
+  description { 'be present (not nil/blank)' }
+end
+
+def not_change(&block)
+  change(&block).by(0)
+end
 
 RSpec.configure do |config|
   config.include Rack::Test::Methods

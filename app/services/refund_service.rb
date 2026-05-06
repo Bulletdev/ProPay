@@ -17,6 +17,9 @@ class RefundService
   end
 
   def refund_to_wallet!(idempotency_key:)
+    existing = WalletTransaction.first(idempotency_key: idempotency_key)
+    return existing if existing
+
     validate!
 
     DB.transaction do
