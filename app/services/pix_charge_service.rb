@@ -9,7 +9,7 @@ class PixChargeService
   end
 
   def create!(amount_cents:, description:, reference_type:, reference_id:,
-              expires_in_seconds:, idempotency_key:)
+              expires_in_seconds:, idempotency_key:, subscription_id: nil)
     existing = Charge.first(idempotency_key: idempotency_key)
     return existing if existing
 
@@ -25,6 +25,7 @@ class PixChargeService
 
     Charge.create(
       customer_id: @customer.id,
+      subscription_id: subscription_id,
       txid: txid,
       provider: provider_name,
       provider_id: result[:provider_id],

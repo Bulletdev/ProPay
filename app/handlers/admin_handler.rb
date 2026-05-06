@@ -20,9 +20,9 @@ class AdminHandler
         offset   = (page - 1) * per_page
         status   = @r.params['status']
 
-        scope = status ? Subscription.where(status: status) : Subscription.all
-        subs  = scope.order(Sequel.desc(:created_at)).limit(per_page).offset(offset).all
+        scope = status ? Subscription.where(status: status) : Subscription.dataset
         total = scope.count
+        subs  = scope.order(Sequel.desc(:created_at)).limit(per_page).offset(offset).all
 
         Oj.dump({
                   data: subs.map { |s| serialize_subscription(s) },
@@ -38,9 +38,9 @@ class AdminHandler
         offset   = (page - 1) * per_page
         status   = @r.params['status']
 
-        scope   = status ? Charge.where(status: status) : Charge.all
-        charges = scope.order(Sequel.desc(:created_at)).limit(per_page).offset(offset).all
+        scope   = status ? Charge.where(status: status) : Charge.dataset
         total   = scope.count
+        charges = scope.order(Sequel.desc(:created_at)).limit(per_page).offset(offset).all
 
         Oj.dump({
                   data: charges.map { |c| serialize_charge(c) },

@@ -35,7 +35,7 @@ class WalletHandler
           expires_in_seconds: 3600,
           idempotency_key: idempotency_key
         )
-        response.status = 201
+        @r.response.status = 201
         Oj.dump({
                   data: {
                     txid: charge.txid,
@@ -108,7 +108,7 @@ class WalletHandler
 
         PayoutProcessingJob.perform_async(payout.id)
 
-        response.status = 202
+        @r.response.status = 202
         Oj.dump({ data: serialize_payout(payout) }, mode: :compat)
       end
 

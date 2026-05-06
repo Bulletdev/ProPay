@@ -29,7 +29,7 @@ class ChargesHandler
         idempotency_key: idempotency_key
       )
 
-      response.status = 201
+      @r.response.status = 201
       Oj.dump({ data: serialize(charge) }, mode: :compat)
     end
 

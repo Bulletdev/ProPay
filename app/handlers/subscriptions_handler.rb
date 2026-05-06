@@ -15,7 +15,7 @@ class SubscriptionsHandler
         plan_name: body['plan_name'].to_s,
         trial_days: Integer(body.fetch('trial_days', 14))
       )
-      response.status = 201
+      @r.response.status = 201
       Oj.dump({ data: serialize(sub) }, mode: :compat)
     rescue ArgumentError => e
       @r.halt(422, Oj.dump({ error: e.message }, mode: :compat))
