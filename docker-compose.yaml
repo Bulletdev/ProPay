@@ -74,7 +74,6 @@ services:
         condition: service_healthy
     networks:
       - propay-internal
-      - coolify
 
 volumes:
   propay_db_data:
