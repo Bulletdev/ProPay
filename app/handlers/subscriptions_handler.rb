@@ -22,7 +22,7 @@ class SubscriptionsHandler
     end
 
     @r.on 'by_owner' do
-      @r.on ':owner_id' do |owner_id|
+      @r.on :owner_id do |owner_id|
         @r.get do
           customer = Customer.first(owner_type: 'user', owner_id: Integer(owner_id))
           sub = customer && Subscription
@@ -34,7 +34,7 @@ class SubscriptionsHandler
       end
     end
 
-    @r.on ':id' do |id|
+    @r.on :id do |id|
       @r.get do
         customer = find_customer!
         sub = Subscription.first(id: Integer(id), customer_id: customer.id)

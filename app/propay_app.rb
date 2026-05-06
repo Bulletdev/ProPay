@@ -6,6 +6,7 @@ class ProPayApp < Roda
   plugin :json
   plugin :json_parser
   plugin :halt
+  plugin :all_verbs
   plugin :status_handler
   plugin :request_headers
 

@@ -33,7 +33,7 @@ class ChargesHandler
       Oj.dump({ data: serialize(charge) }, mode: :compat)
     end
 
-    @r.on ':txid' do |txid|
+    @r.on :txid do |txid|
       @r.get do
         customer = find_customer!
         charge   = Charge.first(txid: txid, customer_id: customer.id)

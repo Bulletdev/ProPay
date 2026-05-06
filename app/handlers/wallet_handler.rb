@@ -7,11 +7,6 @@ class WalletHandler
   end
 
   def call
-    @r.get do
-      wallet = Wallet.first(user_id: @auth.user_id)
-      Oj.dump({ data: { balance_cents: wallet&.balance_cents || 0 } }, mode: :compat)
-    end
-
     @r.on 'transactions' do
       @r.get do
         wallet = Wallet.first(user_id: @auth.user_id)
@@ -112,7 +107,7 @@ class WalletHandler
         Oj.dump({ data: serialize_payout(payout) }, mode: :compat)
       end
 
-      @r.on ':payout_id' do |payout_id|
+      @r.on :payout_id do |payout_id|
         @r.get do
           wallet = Wallet.first(user_id: @auth.user_id)
           @r.halt(404, Oj.dump({ error: 'not_found' }, mode: :compat)) unless wallet
@@ -123,6 +118,11 @@ class WalletHandler
           Oj.dump({ data: serialize_payout(payout) }, mode: :compat)
         end
       end
+    end
+
+    @r.get do
+      wallet = Wallet.first(user_id: @auth.user_id)
+      Oj.dump({ data: { balance_cents: wallet&.balance_cents || 0 } }, mode: :compat)
     end
   end
 
