@@ -14,7 +14,20 @@ db_opts = {
 }
 db_opts[:logger] = Logger.new($stdout) if ENV['DB_LOGGING'] == 'true'
 
-DB = Sequel.connect(**db_opts)
+retries    = Integer(ENV.fetch('DB_CONNECT_RETRIES', '10'))
+retry_wait = Integer(ENV.fetch('DB_CONNECT_RETRY_DELAY', '3'))
+
+begin
+  DB = Sequel.connect(**db_opts)
+rescue Sequel::DatabaseConnectionError => e
+  raise if retries.zero?
+
+  retries -= 1
+  warn "DB not ready (#{e.message.lines.first&.chomp}), retrying in #{retry_wait}s... (#{retries} left)"
+  sleep retry_wait
+  retry
+end
+
 require 'sequel_pg'
 DB.extension :pg_json
 DB.freeze
