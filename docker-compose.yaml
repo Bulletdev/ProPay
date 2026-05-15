@@ -44,6 +44,7 @@ services:
       PROPAY_OPENPIX_SECRET: ${PROPAY_OPENPIX_SECRET:-}
       PROPAY_PIX_KEY: ${PROPAY_PIX_KEY:-}
       PROPAY_PROVIDER: ${PROPAY_PROVIDER:-openpix}
+      PROPAY_EFI_CERT_PATH: ${PROPAY_EFI_CERT_PATH:-/run/secrets/efi_cert.p12}
       PROSTAFF_API_URL: ${PROSTAFF_API_URL:-http://api:3000}
       MALLOC_ARENA_MAX: "2"
     ports:
@@ -83,6 +84,14 @@ services:
 
 volumes:
   propay_db_data:
+
+# Phase 2: enable mTLS for Efi provider by uncommenting the block below,
+# placing the .p12 file in ./secrets/efi_cert.p12, and adding
+# "secrets: [efi_cert]" to the propay and propay-worker service definitions.
+#
+# secrets:
+#   efi_cert:
+#     file: ./secrets/efi_cert.p12
 
 networks:
   propay-internal:

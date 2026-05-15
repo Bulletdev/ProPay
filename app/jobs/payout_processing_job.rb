@@ -31,10 +31,21 @@ class PayoutProcessingJob
   private
 
   def validation_error(payout, wallet)
-    return 'insufficient funds' unless wallet.sufficient_funds?(payout.amount_cents)
-    return 'anti-fraud: withdrawal too soon after last deposit' unless anti_fraud_cleared?(wallet)
-    return "invalid pix key for type #{payout.pix_key_type}" unless PixKeyValidator.valid?(payout.pix_key_type,
-                                                                                           payout.pix_key)
+    unless wallet.sufficient_funds?(payout.amount_cents)
+      Sidekiq.logger.warn "payout_id=#{payout.id} anti_fraud=insufficient_funds " \
+                          "balance_cents=#{wallet.balance_cents} requested_cents=#{payout.amount_cents}"
+      return 'insufficient funds'
+    end
+
+    unless anti_fraud_cleared?(wallet)
+      Sidekiq.logger.warn "payout_id=#{payout.id} anti_fraud=withdrawal_too_soon wallet_id=#{wallet.id}"
+      return 'anti-fraud: withdrawal too soon after last deposit'
+    end
+
+    unless PixKeyValidator.valid?(payout.pix_key_type, payout.pix_key)
+      Sidekiq.logger.warn "payout_id=#{payout.id} anti_fraud=invalid_pix_key pix_key_type=#{payout.pix_key_type}"
+      return "invalid pix key for type #{payout.pix_key_type}"
+    end
 
     nil
   end
@@ -80,6 +91,7 @@ class PayoutProcessingJob
   end
 
   def fail_payout!(payout, reason)
+    Sidekiq.logger.warn "payout_id=#{payout.id} action=failed reason=#{reason.inspect}"
     payout.update(status: 'failed', failed_at: Time.now.utc, failure_reason: reason)
   end
 end

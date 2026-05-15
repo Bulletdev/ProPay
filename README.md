@@ -253,7 +253,7 @@ Todas as mutações exigem `Idempotency-Key: <uuid-v4>`.
 - `GET    /v1/wallet`
 - `GET    /v1/wallet/transactions`
 - `POST   /v1/wallet/deposit`
-- `POST   /v1/wallet/debit`
+- `POST   /v1/wallet/debit` _(role `admin` ou `service` obrigatório)_
 - `POST   /v1/wallet/payouts`
 - `GET    /v1/wallet/payouts/:id`
 
@@ -266,7 +266,7 @@ Todas as mutações exigem `Idempotency-Key: <uuid-v4>`.
 - `GET    /v1/tournaments/:id/financial_report`
 
 #### Observabilidade
-- `GET    /metrics` - Métricas Prometheus (proteger via Traefik em produção)
+- `GET    /metrics` - Métricas Prometheus (acesso restrito a IPs privados: 127.x, 10.x, 172.16-31.x, 192.168.x)
 
 **Status de cobrança:**
 
@@ -397,10 +397,11 @@ docker exec <propay-container> bundle exec ruby -e \
 | `REDIS_URL`                  | Sim         | Redis DB 1 (ex: `redis://redis:6379/1`) |
 | `INTERNAL_JWT_SECRET`        | Sim         | Mesmo do prostaff-api |
 | `PROPAY_OPENPIX_APP_ID`      | Fase 1      | OpenPix App ID |
-| `PROPAY_OPENPIX_SECRET`      | Fase 1      | Secret HMAC |
+| `PROPAY_OPENPIX_SECRET`      | Fase 1      | Secret HMAC atual |
+| `PROPAY_OPENPIX_SECRET_PREV` | Não         | Secret HMAC anterior — usado durante rotação sem downtime |
 | `PROPAY_EFI_CLIENT_ID`       | Fase 2      | Efi Client ID |
 | `PROPAY_EFI_CLIENT_SECRET`   | Fase 2      | Efi Client Secret |
-| `PROPAY_EFI_CERTIFICATE_PATH`| Fase 2      | Caminho .p12 |
+| `PROPAY_EFI_CERT_PATH`       | Fase 2      | Caminho do certificado mTLS .p12 (ex: `/run/secrets/efi_cert.p12`) |
 | `PROPAY_PIX_KEY`             | Sim         | Chave PIX da conta |
 | `PROPAY_PROVIDER`            | Não         | `openpix` (default) ou `efi` |
 | `PROSTAFF_API_URL`           | Sim         | URL interna do prostaff-api |

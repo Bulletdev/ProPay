@@ -201,13 +201,27 @@ RSpec.describe 'Wallet API', type: :request do
       end
     end
 
-    context 'with sufficient funds' do
+    context 'with a regular member JWT' do
+      it 'returns 403 forbidden' do
+        post '/v1/wallet/debit',
+             debit_body,
+             auth_header(user_id: user_id, role: 'member').merge(
+               'CONTENT_TYPE' => 'application/json',
+               'HTTP_IDEMPOTENCY_KEY' => 'deb-001'
+             )
+
+        expect(last_response.status).to eq(403)
+        expect(json_body['error']).to eq('forbidden')
+      end
+    end
+
+    context 'with sufficient funds (admin caller)' do
       before { create_wallet(user_id: user_id, balance_cents: 1000) }
 
       it 'returns 200' do
         post '/v1/wallet/debit',
              debit_body,
-             auth_header(user_id: user_id).merge(
+             auth_header(user_id: user_id, role: 'admin').merge(
                'CONTENT_TYPE' => 'application/json',
                'HTTP_IDEMPOTENCY_KEY' => 'deb-001'
              )
@@ -218,12 +232,27 @@ RSpec.describe 'Wallet API', type: :request do
       it 'returns the new balance_cents' do
         post '/v1/wallet/debit',
              debit_body,
-             auth_header(user_id: user_id).merge(
+             auth_header(user_id: user_id, role: 'admin').merge(
                'CONTENT_TYPE' => 'application/json',
                'HTTP_IDEMPOTENCY_KEY' => 'deb-001'
              )
 
         expect(json_body['data']['balance_cents']).to eq(700)
+      end
+    end
+
+    context 'with sufficient funds (service caller)' do
+      before { create_wallet(user_id: user_id, balance_cents: 1000) }
+
+      it 'returns 200' do
+        post '/v1/wallet/debit',
+             debit_body,
+             auth_header(user_id: user_id, role: 'service').merge(
+               'CONTENT_TYPE' => 'application/json',
+               'HTTP_IDEMPOTENCY_KEY' => 'deb-001'
+             )
+
+        expect(last_response.status).to eq(200)
       end
     end
 
@@ -233,7 +262,7 @@ RSpec.describe 'Wallet API', type: :request do
       it 'returns 422' do
         post '/v1/wallet/debit',
              debit_body,
-             auth_header(user_id: user_id).merge(
+             auth_header(user_id: user_id, role: 'admin').merge(
                'CONTENT_TYPE' => 'application/json',
                'HTTP_IDEMPOTENCY_KEY' => 'deb-001'
              )
@@ -247,7 +276,7 @@ RSpec.describe 'Wallet API', type: :request do
       it 'returns 422 with insufficient_funds' do
         post '/v1/wallet/debit',
              debit_body,
-             auth_header(user_id: user_id).merge(
+             auth_header(user_id: user_id, role: 'admin').merge(
                'CONTENT_TYPE' => 'application/json',
                'HTTP_IDEMPOTENCY_KEY' => 'deb-001'
              )

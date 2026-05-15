@@ -44,6 +44,8 @@ class WalletHandler
 
     @r.on 'debit' do
       @r.post do
+        @r.halt(403, Oj.dump({ error: 'forbidden' }, mode: :compat)) unless @auth.admin? || @auth.service?
+
         body            = parse_body
         idempotency_key = require_idempotency_key!
 

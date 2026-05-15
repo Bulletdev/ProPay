@@ -11,6 +11,7 @@ ENV['REDIS_URL']                 ||= 'redis://localhost:6379/9'
 ENV['INTERNAL_JWT_SECRET']       ||= 'test_secret'
 ENV['PROPAY_OPENPIX_APP_ID']     ||= 'test_openpix_app_id'
 ENV['PROPAY_OPENPIX_SECRET']     ||= 'test_openpix_secret'
+ENV['PROPAY_OPENPIX_SECRET_PREV'] ||= ''
 ENV['PROPAY_PROVIDER']           ||= 'openpix'
 ENV['PROSTAFF_API_URL']          ||= 'http://prostaff-api:3000'
 
@@ -55,8 +56,8 @@ RSpec::Matchers.define :be_present do
   description { 'be present (not nil/blank)' }
 end
 
-def not_change(&block)
-  change(&block).by(0)
+def not_change(&)
+  change(&).by(0)
 end
 
 RSpec.configure do |config|

@@ -23,6 +23,10 @@ module Middleware
       @role == 'admin'
     end
 
+    def service?
+      @role == 'service'
+    end
+
     private
 
     def decode_token(env)

@@ -37,8 +37,15 @@ class OpenpixProvider < BaseProvider
     received = headers['x-webhook-signature'] || headers['X-Webhook-Signature']
     return false unless received
 
-    expected = OpenSSL::HMAC.hexdigest('SHA256', ENV.fetch('PROPAY_OPENPIX_SECRET'), raw_body)
-    secure_compare?(received, expected)
+    secrets = [
+      ENV.fetch('PROPAY_OPENPIX_SECRET', nil),
+      ENV.fetch('PROPAY_OPENPIX_SECRET_PREV', nil)
+    ].compact.reject(&:empty?)
+
+    secrets.any? do |secret|
+      expected = OpenSSL::HMAC.hexdigest('SHA256', secret, raw_body)
+      secure_compare?(received, expected)
+    end
   rescue StandardError
     false
   end
