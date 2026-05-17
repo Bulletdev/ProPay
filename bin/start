@@ -4,6 +4,7 @@ set -e
 echo "[PROPAY] Running database migrations..."
 bundle exec ruby -e "
   require 'sequel'
+  require 'sequel/extensions/migration'
   db = Sequel.connect(
     adapter:  'postgres',
     host:     ENV.fetch('DB_HOST'),
