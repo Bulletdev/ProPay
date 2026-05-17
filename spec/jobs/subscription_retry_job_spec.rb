@@ -140,7 +140,7 @@ RSpec.describe SubscriptionRetryJob do
         sub = create_past_due_subscription(payment_failures: 0)
         described_class.new.perform(sub.id)
 
-        sub.update(payment_failures: 0, status: 'past_due')
+        Subscription.where(id: sub.id).update(payment_failures: 0, status: 'past_due')
 
         expect { described_class.new.perform(sub.id) }
           .not_to(change { Charge.where(subscription_id: sub.id).count })
