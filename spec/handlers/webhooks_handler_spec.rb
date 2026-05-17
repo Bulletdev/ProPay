@@ -132,5 +132,35 @@ RSpec.describe 'Webhooks API', type: :request do
         expect(last_response.status).to eq(200)
       end
     end
+
+    context 'when payload has no identifiable idempotency key' do
+      let(:keyless_payload) do
+        {
+          'event' => 'OPENPIX:CHARGE_COMPLETED',
+          'charge' => { 'value' => 1000 }
+          # no pix[].endToEndId, no endToEndId, no charge.correlationID
+        }
+      end
+
+      it 'returns 422' do
+        post_openpix_webhook(keyless_payload)
+        expect(last_response.status).to eq(422)
+      end
+
+      it 'returns missing_idempotency_key error' do
+        post_openpix_webhook(keyless_payload)
+        expect(json_body['error']).to eq('missing_idempotency_key')
+      end
+
+      it 'does not create a WebhookEvent' do
+        expect { post_openpix_webhook(keyless_payload) }
+          .not_to(change { WebhookEvent.count })
+      end
+
+      it 'does not enqueue PixWebhookJob' do
+        post_openpix_webhook(keyless_payload)
+        expect(PixWebhookJob).not_to have_received(:perform_async)
+      end
+    end
   end
 end

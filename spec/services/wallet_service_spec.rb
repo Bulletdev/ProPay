@@ -217,5 +217,71 @@ RSpec.describe WalletService do
         end.to raise_error(WalletService::InsufficientFunds)
       end
     end
+
+    context 'idempotency' do
+      before { create_wallet(user_id: user_id, balance_cents: 500) }
+
+      it 'returns the existing transaction on a duplicate call' do
+        first_txn = described_class.debit!(
+          user_id: user_id,
+          amount_cents: 500,
+          type: 'inscription_debit',
+          description: 'Entry fee',
+          idempotency_key: idempotency_key
+        )
+
+        second_txn = described_class.debit!(
+          user_id: user_id,
+          amount_cents: 500,
+          type: 'inscription_debit',
+          description: 'Entry fee',
+          idempotency_key: idempotency_key
+        )
+
+        expect(second_txn.id).to eq(first_txn.id)
+      end
+
+      it 'does not deduct the balance again on a duplicate call' do
+        described_class.debit!(
+          user_id: user_id,
+          amount_cents: 500,
+          type: 'inscription_debit',
+          description: 'Entry fee',
+          idempotency_key: idempotency_key
+        )
+
+        expect do
+          described_class.debit!(
+            user_id: user_id,
+            amount_cents: 500,
+            type: 'inscription_debit',
+            description: 'Entry fee',
+            idempotency_key: idempotency_key
+          )
+        end.not_to(change { Wallet.first(user_id: user_id).balance_cents })
+      end
+
+      it 'does not raise InsufficientFunds on retry even when balance is now zero' do
+        # First debit drains the wallet
+        described_class.debit!(
+          user_id: user_id,
+          amount_cents: 500,
+          type: 'inscription_debit',
+          description: 'Entry fee',
+          idempotency_key: idempotency_key
+        )
+
+        # Balance is now 0 — retry must not raise
+        expect do
+          described_class.debit!(
+            user_id: user_id,
+            amount_cents: 500,
+            type: 'inscription_debit',
+            description: 'Entry fee',
+            idempotency_key: idempotency_key
+          )
+        end.not_to raise_error
+      end
+    end
   end
 end
