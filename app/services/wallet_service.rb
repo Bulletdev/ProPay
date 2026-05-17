@@ -29,14 +29,17 @@ class WalletService
     end
   end
 
-  def self.debit!(user_id:, amount_cents:, **)
+  def self.debit!(user_id:, amount_cents:, idempotency_key:, **)
     DB.transaction do
+      existing = WalletTransaction.first(idempotency_key: idempotency_key)
+      return existing if existing
+
       wallet = Wallet.where(user_id: user_id).for_update.first
-      if wallet.nil? || wallet.balance_cents < amount_cents
+      unless wallet&.sufficient_funds?(amount_cents)
         raise InsufficientFunds, "insufficient funds for user_id=#{user_id}"
       end
 
-      credit!(user_id: user_id, amount_cents: -amount_cents, **)
+      credit!(user_id: user_id, amount_cents: -amount_cents, idempotency_key: idempotency_key, **)
     end
   end
 end

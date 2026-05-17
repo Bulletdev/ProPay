@@ -7,7 +7,7 @@ class OpenpixProvider < BaseProvider
   BASE_URL = 'https://api.openpix.com.br/api/v1'
 
   def create_charge(amount_cents:, description:, txid:, expires_in:)
-    response = HTTPX.post(
+    response = HTTPX.with(timeout: { connect: 5, read: 10 }).post(
       "#{BASE_URL}/charge",
       headers: auth_headers,
       json: {
@@ -29,7 +29,7 @@ class OpenpixProvider < BaseProvider
   end
 
   def cancel_charge(txid:)
-    response = HTTPX.delete("#{BASE_URL}/charge/#{txid}", headers: auth_headers)
+    response = HTTPX.with(timeout: { connect: 5, read: 10 }).delete("#{BASE_URL}/charge/#{txid}", headers: auth_headers)
     [200, 204].include?(response.status)
   end
 

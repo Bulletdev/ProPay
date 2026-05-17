@@ -251,6 +251,9 @@ Todas as mutações exigem `Idempotency-Key: <uuid-v4>`.
 - `PATCH  /v1/subscriptions/:id/cancel`
 - `GET    /v1/subscriptions/:id/charges`
 
+#### Clientes
+- `POST   /v1/customers` - Registrar usuário como cliente PIX (find-or-create, idempotente)
+
 #### Carteira
 - `GET    /v1/wallet`
 - `GET    /v1/wallet/transactions`
@@ -306,7 +309,7 @@ Abstração unificada - trocar de provider só muda `PROPAY_PROVIDER`.
 | `RecurringChargeJob`     | Cron diário 08:00 BRT    | Gera cobranças recorrentes |
 | `SubscriptionRetryJob`   | Charge expirada          | Retry D+1/D+2/D+3 |
 | `PrizeDistributionJob`   | Campeonato finalizado    | Distribui prêmios |
-| `ExpireChargesJob`       | Cron 15 min              | Marca cobranças expiradas |
+| `ExpireChargesJob`       | Cron 15 min              | Marca cobranças expiradas + transiciona subscription `active` → `past_due` + enfileira retry D+1 |
 | `PayoutProcessingJob`    | Saque solicitado         | Valida anti-fraude 24h + debita wallet + PIX de saída |
 | `SidekiqHealthJob`       | Cron 5 min               | Alerta dead queue > 5, atualiza gauge Prometheus |
 
@@ -315,8 +318,9 @@ Abstração unificada - trocar de provider só muda `PROPAY_PROVIDER`.
 ### WEBHOOKS
 
 - Sempre responde `200 OK` em < 100ms (processamento assíncrono via Sidekiq)
-- Validação HMAC-SHA256 obrigatória
-- `end_to_end_id` UNIQUE → idempotente
+- Validação HMAC-SHA256 obrigatória (retorna `401` em assinatura inválida)
+- Payload sem `endToEndId` nem `correlationID` retorna `422` — sem fallback aleatório que quebraria idempotência
+- `end_to_end_id` UNIQUE → idempotente (retorna `already_processed` em retry)
 
 ---
 

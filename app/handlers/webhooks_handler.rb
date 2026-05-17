@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'securerandom'
-
 class WebhooksHandler
   def initialize(request)
     @r = request
@@ -20,6 +18,11 @@ class WebhooksHandler
         payload    = Oj.load(raw_body, mode: :compat)
         event_type = payload['event'] || 'OPENPIX:CHARGE_COMPLETED'
         idem_key   = extract_idem_key(payload)
+
+        unless idem_key
+          Sidekiq.logger.warn("[WebhooksHandler] missing idempotency key payload=#{raw_body.to_s[0, 300]}")
+          @r.halt(422, Oj.dump({ error: 'missing_idempotency_key' }, mode: :compat))
+        end
 
         return Oj.dump({ status: 'already_processed' }, mode: :compat) if WebhookEvent.first(idempotency_key: idem_key)
 
@@ -44,8 +47,7 @@ class WebhooksHandler
   def extract_idem_key(payload)
     payload.dig('pix', 0, 'endToEndId') ||
       payload['endToEndId'] ||
-      payload.dig('charge', 'correlationID') ||
-      SecureRandom.hex(16)
+      payload.dig('charge', 'correlationID')
   end
 
   def payment_event?(event_type)
