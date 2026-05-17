@@ -8,11 +8,18 @@ class ProPayApp < Roda
   plugin :halt
   plugin :all_verbs
   plugin :status_handler
+  plugin :error_handler
   plugin :request_headers
 
   status_handler(404) { Oj.dump({ error: 'not_found' }, mode: :compat) }
   status_handler(422) { Oj.dump({ error: 'unprocessable_entity' }, mode: :compat) }
   status_handler(500) { Oj.dump({ error: 'internal_server_error' }, mode: :compat) }
+
+  error do |e|
+    response['Content-Type'] = 'application/json'
+    response.status = 500
+    Oj.dump({ error: e.message }, mode: :compat)
+  end
 
   route do |r|
     response['Content-Type'] = 'application/json'
