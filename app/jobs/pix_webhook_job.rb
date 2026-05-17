@@ -57,7 +57,7 @@ class PixWebhookJob
       description: 'PIX deposit confirmed',
       idempotency_key: "deposit_#{end_to_end_id}",
       reference_type: 'charge',
-      reference_id: charge.id
+      reference_id: charge.id.to_s
     )
   end
 

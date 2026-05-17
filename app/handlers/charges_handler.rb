@@ -24,7 +24,7 @@ class ChargesHandler
         amount_cents: Integer(body['amount_cents']),
         description: body['description'].to_s,
         reference_type: body['reference_type'],
-        reference_id: body['reference_id']&.to_i,
+        reference_id: body['reference_id']&.to_s,
         expires_in_seconds: Integer(body.fetch('expires_in_seconds', 3600)),
         idempotency_key: idempotency_key
       )

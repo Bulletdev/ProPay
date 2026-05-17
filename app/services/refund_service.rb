@@ -32,7 +32,7 @@ class RefundService
         description: "Refund for charge #{@charge.txid}",
         idempotency_key: idempotency_key,
         reference_type: 'charge',
-        reference_id: @charge.id
+        reference_id: @charge.id.to_s
       )
     end
   end

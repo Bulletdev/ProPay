@@ -24,7 +24,7 @@ class SubscriptionsHandler
     @r.on 'by_owner' do
       @r.on :owner_id do |owner_id|
         @r.get do
-          customer = Customer.first(owner_type: 'user', owner_id: Integer(owner_id))
+          customer = Customer.first(owner_type: 'user', owner_id: owner_id)
           sub = customer && Subscription
                 .where(customer_id: customer.id)
                 .order(Sequel.desc(:created_at))

@@ -56,7 +56,7 @@ class WalletHandler
           description: body.fetch('description', 'Tournament inscription'),
           idempotency_key: idempotency_key,
           reference_type: body['reference_type'],
-          reference_id: body['reference_id']&.to_i
+          reference_id: body['reference_id']&.to_s
         )
         wallet = Wallet.first(user_id: @auth.user_id)
         Oj.dump({ data: { balance_cents: wallet.balance_cents } }, mode: :compat)

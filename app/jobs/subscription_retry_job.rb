@@ -24,7 +24,8 @@ class SubscriptionRetryJob
       amount_cents: sub.amount_cents,
       description: "ProStaff #{sub.plan_name} retry #{retry_num}",
       reference_type: 'subscription',
-      reference_id: sub.id,
+      reference_id: sub.id.to_s,
+      subscription_id: sub.id,
       expires_in_seconds: 86_400,
       idempotency_key: "retry_#{sub.id}_#{retry_num}"
     )

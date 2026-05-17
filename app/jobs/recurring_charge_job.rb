@@ -23,7 +23,7 @@ class RecurringChargeJob
       amount_cents: sub.amount_cents,
       description: "ProStaff #{sub.plan_name} renewal",
       reference_type: 'subscription',
-      reference_id: sub.id,
+      reference_id: sub.id.to_s,
       subscription_id: sub.id,
       expires_in_seconds: 86_400 * 3,
       idempotency_key: "recurring_#{sub.id}_#{sub.next_charge_at.to_i}"
