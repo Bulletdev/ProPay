@@ -19,7 +19,11 @@ class SubscriptionRetryJob
       return
     end
 
-    retry_num = sub.payment_failures + 1
+    retry_num      = sub.payment_failures + 1
+    idempotency_key = "retry_#{sub.id}_#{retry_num}"
+
+    return if Charge.first(idempotency_key: idempotency_key)
+
     PixChargeService.new(customer: sub.customer).create!(
       amount_cents: sub.amount_cents,
       description: "ProStaff #{sub.plan_name} retry #{retry_num}",
@@ -27,7 +31,7 @@ class SubscriptionRetryJob
       reference_id: sub.id.to_s,
       subscription_id: sub.id,
       expires_in_seconds: 86_400,
-      idempotency_key: "retry_#{sub.id}_#{retry_num}"
+      idempotency_key: idempotency_key
     )
     sub.update(payment_failures: retry_num)
   end

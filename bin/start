@@ -1,10 +1,20 @@
 #!/bin/sh
 set -e
 
-DB_URL="postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
-
 echo "[PROPAY] Running database migrations..."
-bundle exec sequel -m db/migrations "$DB_URL"
+bundle exec ruby -e "
+  require 'sequel'
+  db = Sequel.connect(
+    adapter:  'postgres',
+    host:     ENV.fetch('DB_HOST'),
+    port:     ENV.fetch('DB_PORT').to_i,
+    database: ENV.fetch('DB_NAME'),
+    user:     ENV.fetch('DB_USER'),
+    password: ENV.fetch('DB_PASSWORD')
+  )
+  Sequel::Migrator.run(db, 'db/migrations')
+  db.disconnect
+"
 echo "[PROPAY] Migrations complete."
 
 exec bundle exec iodine --yjit --yjit-exec-mem-size=8 -p 5555
