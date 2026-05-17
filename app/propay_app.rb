@@ -47,6 +47,7 @@ class ProPayApp < Roda
 
       r.env['propay.user_id'] = auth.user_id.to_s
 
+      r.on('customers')     { CustomersHandler.new(r, auth).call }
       r.on('charges')       { ChargesHandler.new(r, auth).call }
       r.on('subscriptions') { SubscriptionsHandler.new(r, auth).call }
       r.on('wallet')        { WalletHandler.new(r, auth).call }
