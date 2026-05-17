@@ -97,7 +97,7 @@ RSpec.describe Middleware::Auth do
     subject { described_class.new(env) }
 
     it 'returns the user_id from the payload' do
-      expect(subject.user_id).to eq(42)
+      expect(subject.user_id).to eq('42')
     end
 
     context 'when the token is invalid' do

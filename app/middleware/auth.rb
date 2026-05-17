@@ -10,7 +10,7 @@ module Middleware
 
     def initialize(env)
       @payload = decode_token(env)
-      @user_id = @payload&.dig('user_id')
+      @user_id = @payload&.dig('user_id')&.to_s
       @org_id  = @payload&.dig('org_id')
       @role    = @payload&.dig('role')
     end

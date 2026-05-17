@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe SubscriptionRetryJob do
-  let(:user_id)  { 99 }
+  let(:user_id)  { '99' }
   let(:customer) { create_customer(owner_id: user_id, email: 'retry@propay.gg') }
 
   let(:openpix_success_body) do

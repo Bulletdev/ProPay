@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe WalletService do
-  let(:user_id) { 42 }
+  let(:user_id) { '42' }
 
   describe '.credit!' do
     let(:idempotency_key) { 'credit-key-001' }
@@ -123,11 +123,11 @@ RSpec.describe WalletService do
           description: 'Prize payout',
           idempotency_key: idempotency_key,
           reference_type: 'charge',
-          reference_id: 99
+          reference_id: '99'
         )
 
         expect(txn.reference_type).to eq('charge')
-        expect(txn.reference_id).to eq(99)
+        expect(txn.reference_id).to eq('99')
       end
     end
   end

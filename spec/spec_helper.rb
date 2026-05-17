@@ -85,12 +85,12 @@ def app
   ProPayApp.freeze.app
 end
 
-def jwt_token(user_id: 1, role: 'member')
+def jwt_token(user_id: '1', role: 'member')
   payload = { 'user_id' => user_id, 'role' => role, 'exp' => Time.now.to_i + 3600 }
   JWT.encode(payload, ENV.fetch('INTERNAL_JWT_SECRET'), 'HS256')
 end
 
-def auth_header(user_id: 1, role: 'member')
+def auth_header(user_id: '1', role: 'member')
   { 'HTTP_AUTHORIZATION' => "Bearer #{jwt_token(user_id: user_id, role: role)}" }
 end
 
@@ -98,10 +98,10 @@ def json_body
   Oj.load(last_response.body, mode: :compat)
 end
 
-def create_customer(owner_id: 1, owner_type: 'user', email: 'test@propay.gg', full_name: 'Test User')
-  Customer.create(owner_type: owner_type, owner_id: owner_id, full_name: full_name, email: email)
+def create_customer(owner_id: '1', owner_type: 'user', email: 'test@propay.gg', full_name: 'Test User')
+  Customer.create(owner_type: owner_type, owner_id: owner_id.to_s, full_name: full_name, email: email)
 end
 
-def create_wallet(user_id: 1, balance_cents: 0)
-  Wallet.create(user_id: user_id, balance_cents: balance_cents)
+def create_wallet(user_id: '1', balance_cents: 0)
+  Wallet.create(user_id: user_id.to_s, balance_cents: balance_cents)
 end

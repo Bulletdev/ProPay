@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Subscriptions API', type: :request do
-  let(:user_id)  { 1 }
+  let(:user_id)  { '1' }
   let(:customer) { create_customer(owner_id: user_id) }
 
   let(:subscription) do
@@ -26,7 +26,7 @@ RSpec.describe 'Subscriptions API', type: :request do
       it 'returns 404' do
         post '/v1/subscriptions',
              valid_body,
-             auth_header(user_id: 999).merge('CONTENT_TYPE' => 'application/json')
+             auth_header(user_id: '999').merge('CONTENT_TYPE' => 'application/json')
 
         expect(last_response.status).to eq(404)
         expect(json_body['error']).to eq('customer not found')

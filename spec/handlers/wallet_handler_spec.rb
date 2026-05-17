@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Wallet API', type: :request do
-  let(:user_id)  { 7 }
+  let(:user_id)  { '7' }
   let(:customer) { create_customer(owner_id: user_id) }
 
   let(:openpix_success_body) do
@@ -141,7 +141,7 @@ RSpec.describe 'Wallet API', type: :request do
       it 'returns 404' do
         post '/v1/wallet/deposit',
              deposit_body,
-             auth_header(user_id: 999).merge(
+             auth_header(user_id: '999').merge(
                'CONTENT_TYPE' => 'application/json',
                'HTTP_IDEMPOTENCY_KEY' => 'dep-001'
              )

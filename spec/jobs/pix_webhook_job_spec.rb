@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe PixWebhookJob do
-  let(:user_id)    { 20 }
+  let(:user_id)    { '20' }
   let(:customer)   { create_customer(owner_id: user_id) }
   let(:end_to_end) { 'E00000000000000000000000000099' }
   let(:txid)       { 'ccddee001122334455667788aabbcc00' }

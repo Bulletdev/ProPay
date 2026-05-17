@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Charges API', type: :request do
-  let(:user_id)  { 1 }
+  let(:user_id)  { '1' }
   let(:customer) { create_customer(owner_id: user_id) }
   let(:txid)     { 'aabbccddeeff00112233445566778899' }
 
@@ -66,7 +66,7 @@ RSpec.describe 'Charges API', type: :request do
       it 'returns 404' do
         post '/v1/charges',
              valid_body,
-             auth_header(user_id: 999).merge(
+             auth_header(user_id: '999').merge(
                'CONTENT_TYPE' => 'application/json',
                'HTTP_IDEMPOTENCY_KEY' => 'idem-001'
              )
@@ -158,7 +158,7 @@ RSpec.describe 'Charges API', type: :request do
     end
 
     context 'when charge belongs to a different customer' do
-      let(:other_user_id) { 888 }
+      let(:other_user_id) { '888' }
       let!(:other_customer) { create_customer(owner_id: other_user_id, email: 'other@propay.gg') }
 
       it 'returns 404' do

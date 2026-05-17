@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+DB_URL="postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+
+echo "[PROPAY] Running database migrations..."
+bundle exec sequel -m db/migrations "$DB_URL"
+echo "[PROPAY] Migrations complete."
+
+exec bundle exec iodine --yjit --yjit-exec-mem-size=8 -p 5555

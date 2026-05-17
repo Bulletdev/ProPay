@@ -163,6 +163,8 @@ propay/
 │   ├── providers/     # OpenPix / Efi
 │   ├── middleware/    # Auth, idempotência, rate limit
 │   └── validators/    # dry-validation schemas
+├── bin/
+│   └── start          # entrypoint: roda migrations + inicia iodine
 ├── db/migrations/
 ├── config/
 ├── config.ru
@@ -376,12 +378,9 @@ networks:
     external: true
 ```
 
-**Migrações (rodar uma vez após o primeiro deploy):**
+**Migrações:**
 
-```bash
-docker exec <propay-container> bundle exec ruby -e \
-  "require_relative 'config/database'; Sequel::Migrator.run(DB, 'db/migrations')"
-```
+Executadas automaticamente pelo `bin/start` a cada inicialização do container — não é necessário rodar manualmente.
 
 ---
 
