@@ -18,4 +18,4 @@ bundle exec ruby -e "
 "
 echo "[PROPAY] Migrations complete."
 
-exec bundle exec iodine --yjit --yjit-exec-mem-size=8 -p 5555
+exec env RUBYOPT="--yjit --yjit-exec-mem-size=8" bundle exec iodine -p 5555

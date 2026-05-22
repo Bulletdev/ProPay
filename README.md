@@ -79,7 +79,7 @@ curl http://localhost:5555/v1/health
 cp .env.example .env
 bundle install
 bundle exec ruby -e "require_relative 'config/database'; Sequel::Migrator.run(DB, 'db/migrations')"
-bundle exec iodine --yjit --yjit-exec-mem-size=8 -p 5555
+RUBYOPT="--yjit --yjit-exec-mem-size=8" bundle exec iodine -p 5555
 ```
 
 API: `http://localhost:5555`  
@@ -164,7 +164,7 @@ propay/
 │   ├── middleware/    # Auth, idempotência, rate limit
 │   └── validators/    # dry-validation schemas
 ├── bin/
-│   └── start          # entrypoint: roda migrations + inicia iodine
+│   └── start          # entrypoint: roda migrations + inicia rage-iodine
 ├── db/migrations/
 ├── config/
 ├── config.ru
@@ -197,7 +197,7 @@ cp .env.example .env
 
 # 4. Rodar
 bundle exec sidekiq -C config/sidekiq.yml -r ./config/sidekiq_boot.rb &  # Terminal 1
-bundle exec iodine --yjit -p 5555                                          # Terminal 2
+RUBYOPT="--yjit" bundle exec iodine -p 5555                                # Terminal 2
 ```
 
 ---
