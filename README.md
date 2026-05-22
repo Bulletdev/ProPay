@@ -164,7 +164,7 @@ propay/
 │   ├── middleware/    # Auth, idempotência, rate limit
 │   └── validators/    # dry-validation schemas
 ├── bin/
-│   └── start          # entrypoint: roda migrations + inicia rage-iodine
+│   └── start          # entrypoint: roda migrations + inicia iodine
 ├── db/migrations/
 ├── config/
 ├── config.ru
