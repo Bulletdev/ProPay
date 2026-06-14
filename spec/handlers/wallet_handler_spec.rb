@@ -150,6 +150,38 @@ RSpec.describe 'Wallet API', type: :request do
       end
     end
 
+    context 'with a negative amount_cents' do
+      before { customer }
+
+      it 'returns 422' do
+        post '/v1/wallet/deposit',
+             Oj.dump({ 'amount_cents' => -1_000_000 }, mode: :compat),
+             auth_header(user_id: user_id).merge(
+               'CONTENT_TYPE' => 'application/json',
+               'HTTP_IDEMPOTENCY_KEY' => 'dep-neg-001'
+             )
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to match(/amount_cents/)
+      end
+    end
+
+    context 'with zero amount_cents' do
+      before { customer }
+
+      it 'returns 422' do
+        post '/v1/wallet/deposit',
+             Oj.dump({ 'amount_cents' => 0 }, mode: :compat),
+             auth_header(user_id: user_id).merge(
+               'CONTENT_TYPE' => 'application/json',
+               'HTTP_IDEMPOTENCY_KEY' => 'dep-zero-001'
+             )
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to match(/amount_cents/)
+      end
+    end
+
     context 'with a valid request' do
       before { customer }
 
@@ -212,6 +244,24 @@ RSpec.describe 'Wallet API', type: :request do
 
         expect(last_response.status).to eq(403)
         expect(json_body['error']).to eq('forbidden')
+      end
+    end
+
+    context 'with a negative amount_cents (admin caller)' do
+      before { create_wallet(user_id: user_id, balance_cents: 1000) }
+
+      it 'returns 422 and does not credit the wallet' do
+        expect do
+          post '/v1/wallet/debit',
+               Oj.dump({ 'amount_cents' => -1_000_000 }, mode: :compat),
+               auth_header(user_id: user_id, role: 'admin').merge(
+                 'CONTENT_TYPE' => 'application/json',
+                 'HTTP_IDEMPOTENCY_KEY' => 'deb-neg-001'
+               )
+        end.not_to(change { Wallet.first(user_id: user_id).balance_cents })
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to match(/amount_cents/)
       end
     end
 
@@ -283,6 +333,55 @@ RSpec.describe 'Wallet API', type: :request do
 
         expect(last_response.status).to eq(422)
         expect(json_body['error']).to eq('insufficient_funds')
+      end
+    end
+  end
+
+  describe 'POST /v1/wallet/payouts' do
+    let(:pix_key)      { '11999999999' }
+    let(:pix_key_type) { 'phone' }
+
+    def payout_body(amount_cents)
+      Oj.dump({
+                'amount_cents' => amount_cents,
+                'pix_key_type' => pix_key_type,
+                'pix_key' => pix_key
+              }, mode: :compat)
+    end
+
+    context 'with a negative amount_cents' do
+      before { create_wallet(user_id: user_id, balance_cents: 10_000) }
+
+      it 'returns 422 and does not create a payout' do
+        expect do
+          post '/v1/wallet/payouts',
+               payout_body(-1_000_000),
+               auth_header(user_id: user_id).merge(
+                 'CONTENT_TYPE' => 'application/json',
+                 'HTTP_IDEMPOTENCY_KEY' => 'pay-neg-001'
+               )
+        end.not_to(change { Payout.count })
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to match(/amount_cents/)
+      end
+    end
+
+    context 'with zero amount_cents' do
+      before { create_wallet(user_id: user_id, balance_cents: 10_000) }
+
+      it 'returns 422 and does not create a payout' do
+        expect do
+          post '/v1/wallet/payouts',
+               payout_body(0),
+               auth_header(user_id: user_id).merge(
+                 'CONTENT_TYPE' => 'application/json',
+                 'HTTP_IDEMPOTENCY_KEY' => 'pay-zero-001'
+               )
+        end.not_to(change { Payout.count })
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to match(/amount_cents/)
       end
     end
   end

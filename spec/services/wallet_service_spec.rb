@@ -135,6 +135,51 @@ RSpec.describe WalletService do
   describe '.debit!' do
     let(:idempotency_key) { 'debit-key-001' }
 
+    context 'when amount_cents is negative' do
+      before { create_wallet(user_id: user_id, balance_cents: 1000) }
+
+      it 'raises ArgumentError' do
+        expect do
+          described_class.debit!(
+            user_id: user_id,
+            amount_cents: -500,
+            type: 'inscription_debit',
+            description: 'Negative attack',
+            idempotency_key: 'neg-001'
+          )
+        end.to raise_error(ArgumentError, /positive/)
+      end
+
+      it 'does not modify the wallet balance' do
+        expect do
+          described_class.debit!(
+            user_id: user_id,
+            amount_cents: -500,
+            type: 'inscription_debit',
+            description: 'Negative attack',
+            idempotency_key: 'neg-001'
+          )
+        end.to raise_error(ArgumentError)
+          .and(not_change { Wallet.first(user_id: user_id).balance_cents })
+      end
+    end
+
+    context 'when amount_cents is zero' do
+      before { create_wallet(user_id: user_id, balance_cents: 1000) }
+
+      it 'raises ArgumentError' do
+        expect do
+          described_class.debit!(
+            user_id: user_id,
+            amount_cents: 0,
+            type: 'inscription_debit',
+            description: 'Zero attack',
+            idempotency_key: 'zero-001'
+          )
+        end.to raise_error(ArgumentError, /positive/)
+      end
+    end
+
     context 'when the wallet has sufficient funds' do
       before { create_wallet(user_id: user_id, balance_cents: 1000) }
 

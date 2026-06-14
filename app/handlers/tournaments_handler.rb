@@ -12,12 +12,17 @@ class TournamentsHandler
         @r.post do
           @r.halt(403, Oj.dump({ error: 'admin_required' }, mode: :compat)) unless @auth.admin?
 
-          body           = Oj.load(@r.body.read, mode: :compat) || {}
-          placement_data = build_placement_data(body['placement_data'] || [])
+          body                  = Oj.load(@r.body.read, mode: :compat) || {}
+          total_collected_cents = Integer(body['total_collected_cents'])
+          placement_data        = build_placement_data(body['placement_data'] || [])
+
+          unless total_collected_cents.positive?
+            @r.halt(422, Oj.dump({ error: 'total_collected_cents must be greater than 0' }, mode: :compat))
+          end
 
           dist = PrizeDistributor.distribute!(
             tournament_id: Integer(tournament_id),
-            total_collected_cents: Integer(body['total_collected_cents']),
+            total_collected_cents: total_collected_cents,
             placement_data: placement_data
           )
 

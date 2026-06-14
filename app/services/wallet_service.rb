@@ -30,6 +30,8 @@ class WalletService
   end
 
   def self.debit!(user_id:, amount_cents:, idempotency_key:, **)
+    raise ArgumentError, 'amount_cents must be positive' unless amount_cents.positive?
+
     DB.transaction do
       existing = WalletTransaction.first(idempotency_key: idempotency_key)
       return existing if existing

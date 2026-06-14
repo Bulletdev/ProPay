@@ -21,9 +21,14 @@ class WalletHandler
         idempotency_key = require_idempotency_key!
         customer        = find_customer!
 
+        amount_cents = Integer(body['amount_cents'])
+        unless amount_cents.positive?
+          @r.halt(422, Oj.dump({ error: 'amount_cents must be greater than 0' }, mode: :compat))
+        end
+
         service = PixChargeService.new(customer: customer)
         charge  = service.create!(
-          amount_cents: Integer(body['amount_cents']),
+          amount_cents: amount_cents,
           description: 'Wallet deposit via PIX',
           reference_type: 'wallet_deposit',
           reference_id: @auth.user_id,
@@ -49,9 +54,14 @@ class WalletHandler
         body            = parse_body
         idempotency_key = require_idempotency_key!
 
+        amount_cents = Integer(body['amount_cents'])
+        unless amount_cents.positive?
+          @r.halt(422, Oj.dump({ error: 'amount_cents must be greater than 0' }, mode: :compat))
+        end
+
         WalletService.debit!(
           user_id: @auth.user_id,
-          amount_cents: Integer(body['amount_cents']),
+          amount_cents: amount_cents,
           type: 'inscription_debit',
           description: body.fetch('description', 'Tournament inscription'),
           idempotency_key: idempotency_key,
@@ -73,6 +83,10 @@ class WalletHandler
         pix_key_type = body['pix_key_type'].to_s
         pix_key      = body['pix_key'].to_s
         amount_cents = body['amount_cents'].to_i
+
+        unless amount_cents.positive?
+          @r.halt(422, Oj.dump({ error: 'amount_cents must be greater than 0' }, mode: :compat))
+        end
 
         unless PixKeyValidator.valid_type?(pix_key_type)
           @r.halt(422,
